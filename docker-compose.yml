@@ -12,6 +12,7 @@ services:
       - ${OPENCLAW_CONFIG_DIR:-./.openclaw}:/home/node/.openclaw
       - ${OPENCLAW_WORKSPACE_DIR:-./.openclaw/workspace}:/home/node/.openclaw/workspace
       - ./sandbox:/home/node/.openclaw/workspace/sandbox
+      - ${OPENCLAW_CONFIG_DIR:-./.openclaw}/media:/home/node/.openclaw/workspace/media
     ports:
       - "127.0.0.1:${OPENCLAW_GATEWAY_PORT:-18789}:18789"
     init: true
