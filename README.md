@@ -37,6 +37,20 @@ This single command runs the full pipeline:
 
 Open the dashboard URL in your browser when prompted. The setup will detect and approve the pairing request automatically.
 
+### Configure model provider
+
+After setup, configure your model provider. For Claude Max/Pro subscriptions:
+
+```bash
+# On your host machine (not inside Docker), generate a setup token
+claude setup-token
+
+# Then configure the model provider
+./dockerclaw.sh cli configure --section model
+```
+
+Select Anthropic as the provider and paste the setup-token when prompted. You can also use an API key or any other [supported provider](https://docs.openclaw.ai/providers).
+
 ### Reset and start over
 
 ```bash
