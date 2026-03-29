@@ -56,6 +56,16 @@ print('Configuration applied.')
 "
 }
 
+backup_config() {
+  local config_file="${OPENCLAW_CONFIG_DIR:-./.openclaw}/openclaw.json"
+  local backup_file="${config_file}.bak.$(date +%Y%m%d-%H%M%S)"
+  if [[ -f "$config_file" ]]; then
+    cp "$config_file" "$backup_file"
+    echo "Backup created: $backup_file"
+    printf '%s\n' "$backup_file"
+  fi
+}
+
 # Install skills (needs running gateway for ClawHub access)
 do_install_skills() {
   while IFS='=' read -r key value; do
@@ -106,6 +116,22 @@ case "${1:-}" in
     rm -rf .openclaw
     echo "Pruned: containers, volumes, and config removed."
     ;;
+  apply-config)
+    backup_file="$(backup_config | tail -n 1)"
+    do_configure
+    echo ""
+    if [[ -n "${backup_file:-}" && -f "$backup_file" ]]; then
+      echo "Configuration diff:"
+      diff -u "$backup_file" "${OPENCLAW_CONFIG_DIR:-./.openclaw}/openclaw.json" || true
+    fi
+    echo ""
+    echo "Restarting gateway..."
+    docker compose down
+    docker compose up -d openclaw-gateway
+    echo "Waiting for healthy gateway..."
+    sleep 25
+    echo "Config applied."
+    ;;
   start)      docker compose up -d openclaw-gateway ;;
   stop)       docker compose down ;;
   restart)    docker compose down && docker compose up -d openclaw-gateway ;;
@@ -138,6 +164,7 @@ case "${1:-}" in
     echo "Usage: $0 <command>" >&2
     echo ""
     echo "  setup      — onboard + configure + start (reads from openclaw.ini)"
+    echo "  apply-config — backup config + merge openclaw.ini + restart gateway"
     echo "  prune      — remove all containers, volumes, and config"
     echo "  start      — start the gateway"
     echo "  stop       — stop all containers"

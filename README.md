@@ -51,6 +51,18 @@ claude setup-token
 
 Select Anthropic as the provider and paste the setup-token when prompted. You can also use an API key or any other [supported provider](https://docs.openclaw.ai/providers).
 
+### Claude Max token optimization
+
+If you're running OpenClaw on a Claude Max/Pro setup-token, optimize for smaller prompts and fewer expensive turns:
+
+- Default to `claude-sonnet-4-6`; keep `claude-opus-4-6` as fallback/escalation only
+- Disable session transcript recall unless you truly need cross-session memory
+- Keep `AGENTS.md`, `MEMORY.md`, `USER.md`, and `HEARTBEAT.md` concise because OpenClaw injects them into every turn
+- Avoid installing optional skills by default; each additional skill increases prompt overhead
+- Start fresh sessions for unrelated tasks instead of letting one long-running session accumulate history
+
+Important: Anthropic `setup-token` auth is convenient, but prompt-caching benefits are tied to API-key usage rather than Claude subscription setup-token flows. If you later switch to Anthropic API keys, revisit caching-oriented optimizations separately.
+
 ### Reset and start over
 
 ```bash
@@ -85,13 +97,24 @@ Edit these files, then `prune` and `setup` to apply from scratch.
 | Setting | Value | Why |
 |---|---|---|
 | `compaction.memoryFlush.enabled` | `true` | Flush durable memories to disk before context compaction |
-| `memorySearch.experimental.sessionMemory` | `true` | Index session transcripts for cross-session recall |
-| `memorySearch.sources` | `memory, sessions` | Search both memory files and session history |
+| `memorySearch.experimental.sessionMemory` | `false` | Avoid replaying old session transcripts into Claude context by default |
+| `memorySearch.sources` | `memory` | Prefer curated memory over full session-history recall |
 
 ### Hooks
 
 - **boot-md** — loads a context file at session startup
 - **session-memory** — auto-saves and recalls memory across sessions
+
+For Claude-only setups, keep the boot files small. OpenClaw injects these workspace files into the prompt on every run:
+
+- `AGENTS.md`
+- `SOUL.md`
+- `TOOLS.md`
+- `IDENTITY.md`
+- `USER.md`
+- `HEARTBEAT.md`
+- `BOOTSTRAP.md`
+- `MEMORY.md`
 
 ### Container hardening (docker-compose.yml)
 
